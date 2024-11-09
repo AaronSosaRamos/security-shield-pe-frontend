@@ -1,12 +1,13 @@
 import { useForm } from 'react-hook-form';
 import { useState, useEffect, useRef } from 'react';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import Layout from '../components/Layout';
 import { MapIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { ClipboardDocumentCheckIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
 import SecurityPlanDetail from './SecurityPlanResults';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import axiosInstance from '../utils/axiosInstance';
 
 type PlanFormInputs = {
     department: string;
@@ -19,85 +20,33 @@ type PlanFormInputs = {
 const SecurityPlanGenerator = () => {
     const { register, handleSubmit, setValue, formState: { errors } } = useForm<PlanFormInputs>();
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedData, setSubmittedData] = useState<any>(null);
     const pdfRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const savedToken = localStorage.getItem('token');
-            if (savedToken) {
-                const decodedToken: any = jwtDecode(savedToken);
-                setValue('department', decodedToken.department || '');
-                setValue('province', decodedToken.province || '');
-                setValue('district', decodedToken.district || '');
-                setIsLoading(false);
-            } else {
-                setIsLoading(false);
-            }
+        const savedToken = localStorage.getItem('token');
+        if (savedToken) {
+            const decodedToken: any = jwtDecode(savedToken);
+            setValue('department', decodedToken.department || '');
+            setValue('province', decodedToken.province || '');
+            setValue('district', decodedToken.district || '');
+            setIsLoading(false);
+        } else {
+            setIsLoading(false);
         }
     }, [setValue]);
 
-    const onSubmit = (data: PlanFormInputs) => {
-        const mockResponse = {
-            plan_id: "SJT-2024",
-            name: `Plan de Seguridad Integral para ${data.district} 2024: ${data.mainTopic}`,
-            creation_date: "2024-10-27",
-            revision_date: "2025-10-27",
-            risk_identifications: [
-                {
-                    risk_id: "R1",
-                    description: "Robo a personas en la vía pública en zonas con poca iluminación.",
-                    impact: "Alto (pérdida de bienes, lesiones físicas, trauma psicológico)",
-                    likelihood: 4,
-                    mitigation_measures: "Mejorar la iluminación pública y aumentar la presencia policial."
-                }
-            ],
-            roles_and_responsibilities: [
-                {
-                    role_id: "ROL1",
-                    title: "Municipalidad Distrital de San Jerónimo de Tunán",
-                    responsibilities: "Coordinar la implementación del plan y gestionar recursos."
-                }
-            ],
-            assets: [
-                {
-                    asset_id: "A1",
-                    asset_name: "Residentes de San Jerónimo de Tunán",
-                    asset_type: "Humano",
-                    protection_measures: "Capacitación en seguridad y fomento de la denuncia.",
-                    potential_impact: "Lesiones físicas y trauma psicológico."
-                }
-            ],
-            incident_response_procedures: [
-                {
-                    procedure_id: "IRP1",
-                    title: "Respuesta a Robos",
-                    steps: "Llamar a la policía y no tocar la escena del crimen.",
-                    responsible_roles: "Comisaría de San Jerónimo de Tunán",
-                    communication_plan: "Comunicación directa con la víctima y reportes a la municipalidad."
-                }
-            ],
-            training_plan: [
-                {
-                    training_id: "T1",
-                    topic: "Prevención de Robos",
-                    target_audience: "Residentes de San Jerónimo de Tunán",
-                    schedule: "Trimestral",
-                    objectives: "Fomentar la participación ciudadana en la prevención del delito."
-                }
-            ],
-            security_policies: [
-                {
-                    policy_id: "SP1",
-                    title: "Política de Seguridad Ciudadana",
-                    purpose: "Establecer lineamientos para la prevención y atención de la delincuencia.",
-                    scope: "Distrito de San Jerónimo de Tunán",
-                    enforcement: "Monitoreo por parte de la municipalidad y evaluación del plan.",
-                    review_date: "Anual"
-                }
-            ]
-        };
-        setSubmittedData(mockResponse);
+    const onSubmit = async (data: PlanFormInputs) => {
+        setIsSubmitting(true);
+        try {
+            const response = await axiosInstance.post('/security-plan', { ...data });
+            setSubmittedData(response.data);
+        } catch (error) {
+            console.error("Error al enviar el plan de seguridad:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleExportPDF = async () => {
@@ -212,9 +161,10 @@ const SecurityPlanGenerator = () => {
 
                     <button
                         type="submit"
-                        className="w-full py-3 mt-6 rounded-lg text-white font-semibold bg-blue-600 hover:bg-blue-700 transition duration-200"
+                        className={`w-full py-3 mt-6 rounded-lg text-white font-semibold ${isSubmitting ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} transition duration-200`}
+                        disabled={isSubmitting}
                     >
-                        🚀 Generar Plan de Seguridad
+                        {isSubmitting ? 'Enviando...' : '🚀 Generar Plan de Seguridad'}
                     </button>
                 </form>
 
