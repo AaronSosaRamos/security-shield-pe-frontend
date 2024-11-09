@@ -2,19 +2,26 @@ import { useForm } from 'react-hook-form';
 import { useState, useEffect } from 'react';
 import {jwtDecode} from 'jwt-decode';
 import Layout from '../components/Layout';
-import { MapIcon, PencilIcon } from '@heroicons/react/24/outline';
-import { ClipboardDocumentCheckIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
+import { MapIcon, PencilIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon } from '@heroicons/react/24/solid';
 
-type PlanFormInputs = {
+type SearchAgentFormInputs = {
   department: string;
   province: string;
   district: string;
-  mainTopic: string;
-  additionalDescription: string;
+  description: string;
 };
 
-const SecurityPlanGenerator = () => {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<PlanFormInputs>();
+const defaultDescription = `📞 Teléfonos de emergencia.
+🚨 Botón de activación de alarmas.
+🤝 Comunicación entre vecinos.
+👨‍🚒 Contactos clave (Bomberos, emergencias, serenazgo, servicio de ambulancia, familiares, etc.).
+🏥 Ubicación de centros de ayuda (Postas médicas, hospitales, bomberos, policía, serenazgo, etc.).
+🔒 Información relevante en materia de seguridad.
+`;
+
+const SecurityInfoAgent = () => {
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<SearchAgentFormInputs>();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +29,7 @@ const SecurityPlanGenerator = () => {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
         const decodedToken: any = jwtDecode(savedToken);
-        
+
         setValue('department', decodedToken.department || '');
         setValue('province', decodedToken.province || '');
         setValue('district', decodedToken.district || '');
@@ -33,8 +40,8 @@ const SecurityPlanGenerator = () => {
     }
   }, [setValue]);
 
-  const onSubmit = (data: PlanFormInputs) => {
-    console.log("Datos del Plan de Seguridad:", data);
+  const onSubmit = (data: SearchAgentFormInputs) => {
+    console.log("Datos de Agente de Búsqueda:", data);
   };
 
   if (isLoading) {
@@ -49,13 +56,13 @@ const SecurityPlanGenerator = () => {
     <Layout>
       <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg mt-12">
         <div className="text-center mb-6">
-          <ShieldCheckIcon className="w-12 h-12 text-blue-600 inline-block" />
+          <InformationCircleIcon className="w-12 h-12 text-blue-600 inline-block" />
           <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-200">
-            Generador de Plan de Seguridad 🛡️
+            Agente de Búsqueda de Información de Seguridad
           </h2>
-          <p className="text-gray-500 dark:text-gray-400">Completa los detalles de tu plan de seguridad para tu comunidad.</p>
+          <p className="text-gray-500 dark:text-gray-400">Consulta información relevante para la seguridad de tu comunidad.</p>
         </div>
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex items-center space-x-2">
             <MapIcon className="w-6 h-6 text-green-500" />
@@ -97,36 +104,24 @@ const SecurityPlanGenerator = () => {
           {errors.district && <p className="text-sm text-red-500">{errors.district.message}</p>}
 
           <div className="flex items-center space-x-2 mt-6">
-            <ClipboardDocumentCheckIcon className="w-6 h-6 text-blue-500" />
-            <label htmlFor="mainTopic" className="text-lg font-medium text-gray-700 dark:text-gray-300">Tema Principal</label>
-          </div>
-          <input
-            type="text"
-            id="mainTopic"
-            {...register("mainTopic", { required: "El campo Tema Principal es obligatorio" })}
-            className="mt-1 p-3 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Ejemplo: Seguridad en la comunidad"
-          />
-          {errors.mainTopic && <p className="text-sm text-red-500">{errors.mainTopic.message}</p>}
-
-          <div className="flex items-center space-x-2 mt-6">
             <PencilIcon className="w-6 h-6 text-blue-500" />
-            <label htmlFor="additionalDescription" className="text-lg font-medium text-gray-700 dark:text-gray-300">Descripción Adicional</label>
+            <label htmlFor="description" className="text-lg font-medium text-gray-700 dark:text-gray-300">Descripción</label>
           </div>
           <textarea
-            id="additionalDescription"
-            {...register("additionalDescription", { required: "La Descripción Adicional es obligatoria" })}
+            id="description"
+            {...register("description", { required: "El campo Descripción es obligatorio" })}
             className="mt-1 p-3 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Agrega detalles adicionales sobre el plan de seguridad"
-            rows={4}
+            placeholder="Ingresa la descripción detallada"
+            rows={6}
+            defaultValue={defaultDescription}
           ></textarea>
-          {errors.additionalDescription && <p className="text-sm text-red-500">{errors.additionalDescription.message}</p>}
+          {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
 
           <button
             type="submit"
             className="w-full py-3 mt-6 rounded-lg text-white font-semibold bg-blue-600 hover:bg-blue-700 transition duration-200"
           >
-            🚀 Generar Plan de Seguridad
+            🔍 Buscar Información
           </button>
         </form>
       </div>
@@ -134,4 +129,4 @@ const SecurityPlanGenerator = () => {
   );
 };
 
-export default SecurityPlanGenerator;
+export default SecurityInfoAgent;
