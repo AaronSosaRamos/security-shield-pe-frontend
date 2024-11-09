@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheckIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import Layout from '../Layout';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axiosInstance from '@/utils/axiosInstance';
 
 const signupSchema = z
     .object({
@@ -53,16 +56,26 @@ const Signup = () => {
 
     const [loading, setLoading] = useState(false);
 
-    const onSubmit = (data: SignupFormInputs) => {
+    const onSubmit = async (data: SignupFormInputs) => {
         setLoading(true);
-        setTimeout(() => {
+        try {
+            const result = await axiosInstance.post("/user/register", data);
+            if (typeof window !== 'undefined') {
+                window.localStorage.setItem('token', result.data.access_token);
+                window.location.href = '/';
+            }
+            toast.success("Registro exitoso");
+        } catch (error) {
+            toast.error("Error al registrar el usuario");
+            console.error("Error en el registro:", error);
+        } finally {
             setLoading(false);
-            console.log("Datos registrados:", data);
-        }, 2000);
+        }
     };
 
     return (
         <Layout>
+            <ToastContainer />
             <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
