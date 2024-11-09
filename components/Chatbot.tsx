@@ -1,99 +1,150 @@
-import { useState } from 'react';
-import { ChatBubbleBottomCenterIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import axiosInstance from '../utils/axiosInstance';
 import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { FiSend } from 'react-icons/fi';
 import Layout from './Layout';
+import { jwtDecode } from 'jwt-decode';
 
-const Chatbot = () => {
-  const [messages, setMessages] = useState([{ text: "👋 ¡Hola! Soy tu asesor de seguridad ciudadana. ¿En qué puedo ayudarte?", from: "bot" }]);
+const Chatbot: React.FC = () => {
+  const [messages, setMessages] = useState([
+    {
+      role: 'ai',
+      type: 'text',
+      payload: { text: '👋 ¡Hola! Soy tu asesor de seguridad ciudadana. ¿En qué puedo ayudarte?' },
+    },
+  ]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const handleSendMessage = () => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedToken = window.localStorage.getItem('token');
+      setToken(savedToken);
+      if (savedToken) {
+        const decodedToken: any = jwtDecode(savedToken);
+        setUserId(decodedToken.user_id)
+        setUserName(`${decodedToken.first_name} ${decodedToken.last_name}`);
+        setUserEmail(decodedToken.email);
+      }
+    }
+  }, []);
+
+  const user = {
+    id: userId,
+    fullName: userName,
+    email: userEmail,
+  };
+
+  const handleSendMessage = async () => {
     if (!input.trim()) return;
-    const userMessage = { text: input, from: "user" };
+
+    const userMessage = {
+      role: 'human',
+      type: 'text',
+      payload: { text: input.trim() },
+    };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
-    setLoading(true);
+    setIsSending(true);
 
-    setTimeout(() => {
-      const botResponse = { text: "🔒 Esta es una respuesta simulada sobre seguridad ciudadana. ¿Te gustaría saber más?", from: "bot" };
-      setMessages((prev) => [...prev, botResponse]);
-      setLoading(false);
-    }, 2000);
+    try {
+
+      console.log(user)
+
+      const response = await axiosInstance.post('/chat', {
+        user, 
+        type: 'chat',
+        messages: [...messages, userMessage].slice(-6),  
+      });
+
+      const botResponse = response.data.data[0];
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: 'ai',
+          type: 'text',
+          payload: { text: botResponse.payload.text },
+        },
+      ]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: 'ai', type: 'text', payload: { text: '⚠️ Hubo un error procesando tu mensaje. Intenta nuevamente.' } },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   };
+
+  useEffect(() => {
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }, [messages]);
 
   return (
     <Layout>
-      <section className="p-8 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl mx-auto mt-12 transition-all">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-6"
-        >
-          <h2 className="text-3xl font-extrabold text-gray-700 dark:text-gray-200 flex justify-center items-center space-x-3">
-            <ChatBubbleBottomCenterIcon className="w-8 h-8 text-blue-600" />
-            <span>Chatbot de Asesoría 🛡️</span>
-          </h2>
-        </motion.div>
+      <div className="min-h-screen bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+          <div className="bg-gradient-to-r from-purple-700 to-blue-700 p-6">
+            <h1 className="text-3xl font-bold text-white">Asesor de Seguridad Ciudadana</h1>
+            <p className="text-white mt-1">Tu asistente para consultas de seguridad ciudadana.</p>
+          </div>
 
-        <div className="h-96 overflow-y-auto bg-white dark:bg-gray-700 p-6 rounded-lg mb-6 shadow-inner transition-all duration-300 ease-in-out">
-          {messages.map((msg, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: msg.from === "bot" ? -30 : 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className={`flex ${msg.from === "bot" ? "justify-start" : "justify-end"} mb-3`}
-            >
-              <div
-                className={`px-5 py-3 rounded-lg ${
-                  msg.from === "bot" 
-                    ? "bg-blue-500 text-white" 
-                    : "bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-white"
-                } shadow-md max-w-[75%] sm:max-w-xs lg:max-w-md`}
-                style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+          <div id="chat-container" className="flex-1 overflow-y-auto p-4" style={{ maxHeight: '65vh' }}>
+            {messages.map((msg, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className={`flex ${msg.role === 'human' ? 'justify-end' : 'justify-start'} mb-4`}
               >
-                {msg.text}
-              </div>
-            </motion.div>
-          ))}
+                <div
+                  className={`max-w-xs md:max-w-md p-3 rounded-lg shadow ${
+                    msg.role === 'human' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+                  }`}
+                >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.payload.text}</ReactMarkdown>
+                </div>
+              </motion.div>
+            ))}
+          </div>
 
-          {loading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, yoyo: Infinity }}
-              className="flex justify-start mb-2"
+          <div className="border-t p-4 flex items-center space-x-4 bg-white">
+            <input
+              type="text"
+              placeholder="Escribe tu mensaje..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isSending}
+            />
+            <button
+              onClick={handleSendMessage}
+              className={`bg-blue-500 p-3 rounded-full text-white shadow-md hover:bg-blue-600 transition ${
+                isSending && 'opacity-50 cursor-not-allowed'
+              }`}
+              disabled={isSending}
+              aria-label="Enviar mensaje"
             >
-              <div
-                className="px-5 py-3 rounded-lg bg-blue-500 text-white shadow-md max-w-[75%] sm:max-w-xs lg:max-w-md"
-                style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-              >
-                Escribiendo<span className="animate-pulse">...</span>
-              </div>
-            </motion.div>
-          )}
+              <FiSend className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-
-        <div className="flex items-center space-x-4">
-          <input
-            type="text"
-            placeholder="Escribe tu mensaje..."
-            className="flex-1 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-          />
-          <button
-            onClick={handleSendMessage}
-            className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Enviar mensaje"
-          >
-            <PaperAirplaneIcon className="w-5 h-5 transform rotate-45" />
-          </button>
-        </div>
-      </section>
+      </div>
     </Layout>
   );
 };
