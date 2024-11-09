@@ -3,7 +3,11 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import Layout from '../Layout';
+import axiosInstance from '@/utils/axiosInstance';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const passwordSchema = z
     .string()
@@ -35,16 +39,26 @@ const Login = () => {
 
     const [loading, setLoading] = useState(false);
 
-    const onSubmit = (data: LoginFormInputs) => {
+    const onSubmit = async (data: LoginFormInputs) => {
         setLoading(true);
-        setTimeout(() => {
+        try {
+            const response = await axiosInstance.post("/user/login", data);
+            if (typeof window !== 'undefined') {
+                window.localStorage.setItem('token', response.data.access_token);
+                window.location.href = '/';
+            }
+            toast.success("Inicio de sesión exitoso");
+        } catch (error) {
+            toast.error("Error en el inicio de sesión");
+            console.error("Error en el inicio de sesión:", error);
+        } finally {
             setLoading(false);
-            console.log("Datos enviados:", data);
-        }, 2000);
+        }
     };
 
     return (
         <Layout>
+            <ToastContainer />
             <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -98,6 +112,15 @@ const Login = () => {
                             {loading ? 'Iniciando...' : 'Iniciar Sesión'}
                         </button>
                     </form>
+
+                    <div className="mt-4 text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            ¿No tienes una cuenta?{' '}
+                            <Link href="/signup" className="text-blue-600 dark:text-blue-400 hover:underline">
+                                Regístrate aquí
+                            </Link>
+                        </p>
+                    </div>
                 </motion.div>
             </div>
         </Layout>
