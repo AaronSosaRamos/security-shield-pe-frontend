@@ -23,7 +23,7 @@ const Home = () => {
                 <ServiceCard
                     title="Chatbot de Asesoría"
                     icon={<ChatBubbleLeftRightIcon className="w-10 h-10 text-green-500" />}
-                    description="Consulta sobre temas de seguridad en tu comunidad con un asesor virtual alimentado por la API Gemini."
+                    description="Consulta sobre temas de seguridad en tu comunidad con un asesor virtual alimentado por Inteligencia Artificial."
                     buttonText="Usar"
                 />
                 <ServiceCard
