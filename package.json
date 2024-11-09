@@ -13,6 +13,8 @@
     "@hookform/resolvers": "3.9.1",
     "axios": "1.7.7",
     "framer-motion": "11.11.11",
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.2",
     "jwt-decode": "4.0.0",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
