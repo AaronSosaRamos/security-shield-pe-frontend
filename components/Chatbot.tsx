@@ -58,8 +58,6 @@ const Chatbot: React.FC = () => {
 
     try {
 
-      console.log(user)
-
       const response = await axiosInstance.post('/chat', {
         user, 
         type: 'chat',
