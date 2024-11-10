@@ -57,7 +57,7 @@ const Navbar = () => {
               <Link href="/chatbot-security" className="hover:text-gray-300">Chatbot</Link>
               <Link href="/security-plan" className="hover:text-gray-300">Plan de Seguridad</Link>
               <Link href="/info-agent" className="hover:text-gray-300">Agente de Búsqueda</Link>
-              <Link href="/zone-chat-alert" className="hover:text-gray-300">Chat de Zona</Link>
+              <Link href="/zone-chat" className="hover:text-gray-300">Chat de Zona</Link>
               <Link href="/geo-map" className="hover:text-gray-300">Mapa</Link>
             </>
           ) : (
@@ -116,7 +116,7 @@ const Navbar = () => {
               <Link href="/info-agent" className="block hover:text-gray-300" onClick={() => setMenuOpen(false)}>
                 Agente de Búsqueda
               </Link>
-              <Link href="/zone-chat-alert" className="block hover:text-gray-300" onClick={() => setMenuOpen(false)}>
+              <Link href="/zone-chat" className="block hover:text-gray-300" onClick={() => setMenuOpen(false)}>
                 Chat de Zona
               </Link>
               <Link href="/geo-map" className="block hover:text-gray-300" onClick={() => setMenuOpen(false)}>
