@@ -8,6 +8,8 @@ import SecurityPlanDetail from './SecurityPlanResults';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import axiosInstance from '../utils/axiosInstance';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type PlanFormInputs = {
     department: string;
@@ -42,6 +44,7 @@ const SecurityPlanGenerator = () => {
         try {
             const response = await axiosInstance.post('/security-plan', { ...data });
             setSubmittedData(response.data);
+            toast.success("Plan Generado Satisfactoriamente");
         } catch (error) {
             console.error("Error al enviar el plan de seguridad:", error);
         } finally {
@@ -84,6 +87,7 @@ const SecurityPlanGenerator = () => {
 
     return (
         <Layout>
+            <ToastContainer />
             <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg mt-12">
                 <div className="text-center mb-6">
                     <ShieldCheckIcon className="w-12 h-12 text-blue-600 inline-block" />

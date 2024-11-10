@@ -7,6 +7,8 @@ import InfoAgentResults from './InfoAgentResults';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import axiosInstance from '../utils/axiosInstance';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type SearchAgentFormInputs = {
     department: string;
@@ -50,6 +52,7 @@ const SecurityInfoAgent = () => {
         try {
             const response = await axiosInstance.post('/info-agent', data);
             setResultData(response.data);
+            toast.success("Búsqueda Efectuada Satisfactoriamente");
         } catch (error) {
             console.error("Error en la solicitud:", error);
         } finally {
@@ -92,6 +95,7 @@ const SecurityInfoAgent = () => {
 
     return (
         <Layout>
+            <ToastContainer />
             <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg mt-12">
                 <div className="text-center mb-6">
                     <InformationCircleIcon className="w-12 h-12 text-blue-600 inline-block" />
