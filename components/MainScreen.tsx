@@ -59,7 +59,7 @@ const Home = () => {
             </section>
 
             <div className="flex justify-center py-12">
-                <Link href="/tutoriales" passHref>
+                <Link href="/tutorials" passHref>
                     <button className="px-8 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">
                         Ver tutoriales
                     </button>
